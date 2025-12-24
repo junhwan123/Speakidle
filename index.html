@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Speakidle</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="header-left">
+        <h1>Speakidle</h1>
+        <p id="headerDesc">
+          (Speaki + Wordle)<br>
+          스피키로 즐기는 워들입니다.
+        </p>
+      </div>
+
+      <!-- 한영 전환 토글 (우측 배치) -->
+      <div class="lang-toggle" id="langToggle">
+        <button type="button" class="lang-btn active" data-lang="kor">KOR</button>
+        <button type="button" class="lang-btn" data-lang="eng">ENG</button>
+      </div>
+    </header>
+
+    <!-- 설정 버튼 영역 (가로 스크롤) -->
+    <nav class="controls">
+      <button type="button" class="control-btn" id="btnReset">정답 재설정</button>
+      <button type="button" class="control-btn" id="btnCustom">정답 직접 설정</button>
+      <button type="button" class="control-btn" id="btnSettings">설정</button>
+    </nav>
+
+    <main>
+      <div class="content">
+        <section class="panel" id="input-panel">
+          <div class="top-row">
+            <h2 class="title" id="boardTitle">입력</h2>
+          </div>
+
+          <div class="board" aria-label="보드">
+            <!-- 현재 입력 줄 -->
+            <div class="row" id="currentRow" aria-label="현재 입력 줄"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="log-panel">
+          <h3 class="log-title"><span id="logTitleText">기록</span> <span id="attemptCount">(0)</span></h3>
+          <div class="log" id="log"></div>
+        </section>
+      </div>
+    </main>
+
+    <section class="keyboard-wrap" aria-label="가상 키보드">
+      <div class="keyboard" id="keyboard"></div>
+    </section>
+  </div>
+
+  <!-- 정답 재설정 모달 -->
+  <div class="modal-overlay" id="resetModal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      <h3 class="modal-title">정답 재설정</h3>
+      <div class="modal-content">
+        <p>새로운 정답으로 게임을 다시 시작하시겠습니까?</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="action-btn secondary modal-cancel">취소</button>
+        <button type="button" class="action-btn primary" id="confirmReset">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 초기화 완료 알림 모달 -->
+  <div class="modal-overlay" id="resetCompleteModal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      <h3 class="modal-title" id="completeTitle">초기화 완료</h3>
+      <div class="modal-content">
+        <p id="completeMsg">새로운 정답이 설정되었습니다.</p>
+        <p id="lastAnswerLabel" style="font-size: 12px; color: #888; margin-top: 15px; margin-bottom: 5px; text-align: center; font-weight: 700;"></p>
+        <!-- 정답 표시 영역 -->
+        <div class="row" id="newSecretDisplay" style="margin-top: 0; justify-content: center;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 정답 직접 설정 확인 모달 -->
+  <div class="modal-overlay" id="customConfirmModal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      <h3 class="modal-title" id="customTitle">정답 직접 설정</h3>
+      <div class="modal-content">
+        <p id="customMsg">원하는 정답으로 게임을 새로 시작하시겠습니까?</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="action-btn secondary modal-cancel">취소</button>
+        <button type="button" class="action-btn primary" id="confirmCustom">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 정답 입력 오버레이 (전체 화면) -->
+  <div class="custom-overlay" id="customOverlay" aria-hidden="true">
+    <div class="custom-container">
+      <h2 id="customOverlayTitle">정답 입력</h2>
+      <!-- 커스텀 입력 줄 -->
+      <div class="row" id="customRow" style="margin: 30px 0;">
+        <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+      </div>
+      <button type="button" class="action-btn primary" id="submitCustom" disabled>확인</button>
+    </div>
+  </div>
+
+  <!-- 승리 축하 모달 -->
+  <div class="modal-overlay" id="winModal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      <h3 class="modal-title" id="winTitle">정답입니다!</h3>
+      <div class="modal-content">
+        <p id="winMsg">축하합니다! {n}번 만에 정답을 맞추셨습니다.</p>
+        <!-- 정답 표시 -->
+        <div class="win-section">
+          <div id="winAnswerLabel" class="win-label" style="text-align: left; width: auto; margin-bottom: 8px;"></div>
+          <div class="row" id="winSecretDisplay" style="margin: 0; justify-content: center;"></div>
+        </div>
+        <!-- 내 기록 표시 -->
+        <div class="win-section" style="padding: 10px 5px;">
+          <div id="winLogLabel" class="win-label" style="text-align: left; width: auto; margin-bottom: 8px; margin-left: 5px;"></div>
+          <div id="winLogDisplay" style="display: grid; gap: 8px;"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="action-btn secondary" id="btnSave">저장</button>
+        <button type="button" class="action-btn primary" id="btnRestart">다시 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설정 변경 확인 모달 -->
+  <div class="modal-overlay" id="settingsChangeModal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      <h3 class="modal-title" id="settingsChangeTitle">설정 변경 확인</h3>
+      <div class="modal-content">
+        <p id="settingsChangeMsg">게임 설정이 변경되어 현재 게임이 초기화됩니다.<br>계속하시겠습니까?</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="action-btn secondary modal-cancel">취소</button>
+        <button type="button" class="action-btn primary" id="confirmSettingsChange">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설정 모달 -->
+  <div class="modal-overlay" id="settingsModal" aria-hidden="true">
+    <div class="modal-window">
+      <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      <h3 class="modal-title" id="settingsTitle">설정</h3>
+          <div class="modal-content">
+                  <div class="settings-section">
+                    <h4 id="soundLabel">소리</h4>
+                    <div class="settings-control-group sound-controls">
+                      <button type="button" id="btnMute" class="sound-control-btn">🔊</button>
+                      <input type="range" id="volumeSlider" min="0" max="100" value="70">
+                      <span id="volumeValue">70</span>
+                    </div>
+                  </div>      <div class="settings-section">
+        <h4 id="wordLengthLabel">정답 개수</h4>
+        <div class="settings-control-group word-length-control">
+          <input type="range" id="wordLengthSlider" min="3" max="7" value="5">
+          <span id="wordLengthValue">5</span>
+        </div>
+      </div>
+            <div class="settings-section">
+              <button type="button" class="toggle-btn" id="allowDuplicatesBtn">중복 허용</button>
+            </div>
+          </div>      <div class="modal-actions">
+        <button type="button" class="action-btn" id="btnResetSettings">초기화</button>
+        <button type="button" class="action-btn secondary modal-cancel">취소</button>
+        <button type="button" class="action-btn primary" id="btnConfirmSettings">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
