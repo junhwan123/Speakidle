@@ -3,6 +3,8 @@
 스피키로 워들을 플레이해봅시다<br>
 Play Wordle with Speaki
 
+[👉 Play Game!](https://junhwan123.github.io/Speakidle/)
+
 ##  게임 소개
 Speakidle은 Wordle의 규칙을 그대로 따릅니다.<br>
 다만 정해진 단어만을 사용하는 Wordle과 달리, Speakidle은 랜덤한 조합을 사용합니다.<br>
