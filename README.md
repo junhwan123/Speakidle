@@ -48,3 +48,6 @@ You can save the record as an image file through the save button.
 *   **Settings**
     *   **Answer Length**: Modify the number of icons in the answer.
     *   **Double letters**: Allow double icons in the answer.
+
+---
+*AI was used for code and English translation.*
